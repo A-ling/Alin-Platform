@@ -1,6 +1,6 @@
 ﻿import moment from 'moment';
 
-// mock data test
+// mock data
 const BrinsonData = {
   columns: [
     '组合比例',
