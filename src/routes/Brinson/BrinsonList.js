@@ -284,14 +284,14 @@ displayChart2 = (xAxisData, configData, stockcrossData) => {
             </div>
           
           <div>
-             <Button type="primary" icon="download" onClick={()=>this.downloadExcel('table1','Brinson归因-超额贡献图')}>导出Excel</Button>
+             <Button type="primary" icon="download" onClick={()=>this.downloadExcel('table1','Brinson归因-超额贡献')}>导出Excel</Button>
              <Button type="primary" icon="table" style={{ marginLeft: 24 }} onClick={()=>this.scrollToAnchor('table1')}>详细数据</Button>
           </div>
           <div id="chartId1" style={{ width: '95%', height: 500 }} />
         </Card>
         <Card loading={loading} bordered={false} style={{ marginTop: 24 }}>
           <div>
-             <Button type="primary" icon="download" onClick={()=>this.downloadExcel('table2','Brinson归因-行业配置等图')}>导出Excel</Button>
+             <Button type="primary" icon="download" onClick={()=>this.downloadExcel('table2','Brinson归因-行业配置等')}>导出Excel</Button>
              <Button type="primary" icon="table" style={{ marginLeft: 24 }} onClick={()=>this.scrollToAnchor('table2')}>详细数据</Button>
           </div>
           <div id="chartId2" style={{ width: '95%', height: 500 }} />

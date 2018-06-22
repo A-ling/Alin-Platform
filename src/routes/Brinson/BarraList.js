@@ -9,11 +9,11 @@ import 'echarts/lib/chart/bar';
 // 引入提示框和标题组件
 import 'echarts/lib/component/tooltip';
 import 'echarts/lib/component/title';
-import "echarts/lib/component/toolbox";
-require("echarts/lib/component/legendScroll");
+import 'echarts/lib/component/toolbox';
+require('echarts/lib/component/legendScroll');
 import styles from './BrinsonList.less';
 
-var $ = require("jquery");
+var $ = require('jquery');
 //import exportExcel from '../../utils/exportExcel';
 var exportExcel = require('../../utils/exportExcel');
 var common = require('../../utils/common');
@@ -22,36 +22,112 @@ var common = require('../../utils/common');
   chart,
   loading: loading.effects['chart/fetch'],
 }))
-export default class BrinsonList extends Component {
+export default class BarraList extends Component {
   state = {
     currentTabKey: '3',
     //display1:display1,
   };
 
-
   componentDidMount() {
-    this.props.dispatch({
-      type: 'chart/fetch',
-    }).then(()=>{
-        
-        const { indexData, exContribution, configData, stockcrossData } = this.props.chart;
-        this.displayChart1(indexData,exContribution);
-        this.displayChart2(indexData,configData,stockcrossData);
-    });
+    this.props
+      .dispatch({
+        type: 'chart/fetch',
+      })
+      .then(() => {
+        const { barraData } = this.props.chart;
+        if (!barraData) {
+          return;
+        }
 
-    this.props.dispatch({
-      type: 'chart/getStrategyInfo',
-    }).then(()=>{
+        const ExContribution = [];
+        const ComContribution = [];
+        var BarraDetailData = barraData;
+        var index = BarraDetailData.index;
+        var columns = BarraDetailData.columns; //行数据
+        var dataArray = BarraDetailData.data;
+
+        for (var i = 0; i < dataArray.length; i++) {
+          for (var j = 0; j < columns.length; j++) {
+            if (columns[j] == '超额贡献') {
+              ExContribution.push(dataArray[i][j]);
+            }
+            if (columns[j] == '组合贡献') {
+              ComContribution.push(dataArray[i][j]);
+            }
+          }
+        }
+        //绘制Brinson绩效归因柱状图
+        this.DrawExContributionBar(index, ExContribution);
+        this.DrawComContributionBar(index, ComContribution);
+
+        const columns = [
+          {
+            title: '项目',
+            dataIndex: 'col0', //列少的情况下，就简单用col0……等代替
+            key: 'col0',
+          },
+          {
+            title: '组合贡献',
+            dataIndex: 'col1',
+            key: 'col1',
+            //sorter: (a, b) => a.count - b.count,
+            className: styles.alignRight,
+          },
+        ];
+        const columns2 = [
+          {
+            title: '项目',
+            dataIndex: 'col0',
+            key: 'col0',
+          },
+          {
+            title: '超额贡献',
+            dataIndex: 'col1',
+            key: 'col1',
+            //sorter: (a, b) => a.count - b.count,
+            className: styles.alignRight,
+          },
+        ];
+        const tableData = []; //数据
+        for (let i = 0; i < index.length; i++) {
+          tableData.push({
+            index: i + 1, //每行数据的key值
+            col0: index[i],
+            col1: ExContribution[i],
+          });
+        }
+        const tableData2 = []; //数据
+        for (let i = 0; i < index.length; i++) {
+          tableData2.push({
+            index: i + 1, //每行数据的key值
+            col0: index[i],
+            col1: ComContribution[i],
+          });
+        }
+
+        this.setState({
+          columns: columns,
+          columns2: columns2,
+          tableData: tableData,
+          tableData2: tableData2,
+        });
+      });
+
+    this.props
+      .dispatch({
+        type: 'chart/getStrategyInfo',
+      })
+      .then(() => {
         console.log(this.props.chart.strategyInfo);
-    })
+      });
 
+    //获取链接或cookie中的参数
     this.setState({
-      strategy_id: common.getParamFromURLOrCookie('strategy_id',true),
-      index_code : common.getParamFromURLOrCookie('index_code',true),
-      begin_date : common.getParamFromURLOrCookie('begin_date',true),
-      end_date : common.getParamFromURLOrCookie('end_date',true),
+      strategy_id: common.getParamFromURLOrCookie('strategy_id', true),
+      index_code: common.getParamFromURLOrCookie('index_code', true),
+      begin_date: common.getParamFromURLOrCookie('begin_date', true),
+      end_date: common.getParamFromURLOrCookie('end_date', true),
     });
-
   }
 
   componentWillUnmount() {
@@ -62,226 +138,208 @@ export default class BrinsonList extends Component {
   }
 
   //绘制图表1
-  displayChart1=function(xAxisData,yAxisData){
+  DrawExContributionBar = function(xAxisData, yAxisData) {
     // 基于准备好的dom，初始化echarts实例
     var myChart = echarts.init(document.getElementById('chartId1'));
     // 绘制图表
     var option = {
-        tooltip: {
-            trigger: 'axis',
-            formatter: function(params) {
-                for(var i = 0; i < params.length; i++) {
-                    return params[i].name + '</br>' + params[i].seriesName + ':' + (params[i].value * 100).toFixed(2) + '%';
-                }
-            }
+      tooltip: {
+        trigger: 'axis',
+        formatter: function(params) {
+          for (var i = 0; i < params.length; i++) {
+            return (
+              params[i].name +
+              '</br>' +
+              params[i].seriesName +
+              ':' +
+              (params[i].value * 100).toFixed(2) +
+              '%'
+            );
+          }
         },
-        toolbox: {
+      },
+      toolbox: {
+        show: true,
+        x: '90%',
+        feature: {
+          dataView: {
             show: true,
-            x: '90%',
-            feature : {
-                dataView : {
-                    show : true,
-                    readOnly : true
-                },
-                saveAsImage: {　　　　
-                    show: true,
-                    name:'Brinson归因-超额贡献图',
-            　　　　excludeComponents: ['toolbox'],
-            　　　　pixelRatio: 2   　　　　
-                }
-            }
+            readOnly: true,
+          },
+          saveAsImage: {
+            show: true,
+            name: 'Barra归因-超额贡献图',
+            excludeComponents: ['toolbox'],
+            pixelRatio: 2,
+          },
         },
-        legend: {
-            data: ['超额贡献']
+      },
+      legend: {
+        data: ['超额贡献'],
+      },
+      itemStyle: {
+        color: '#108ee9',
+      },
+      xAxis: {
+        axisLabel: {
+          rotate: 45,
         },
-        itemStyle: {
-            color: '#108ee9',
+        data: xAxisData,
+      },
+      yAxis: {},
+      series: [
+        {
+          name: '超额贡献',
+          type: 'bar',
+          data: yAxisData,
         },
-        xAxis: {
-            axisLabel: {
-                rotate: 45
-            },
-            data: xAxisData
-        },
-        yAxis: {},
-        series: [{
-            name: '超额贡献',
-            type: 'bar',
-            data: yAxisData
-        }]
+      ],
     };
     myChart.setOption(option);
-  }
+  };
+  //绘制图表2
+  DrawComContributionBar = (xAxisData, yAxisData) => {
+    // 基于准备好的dom，初始化echarts实例
+    var myChart = echarts.init(document.getElementById('chartId2'));
 
-displayChart2 = (xAxisData, configData, stockcrossData) => {
-        // 基于准备好的dom，初始化echarts实例
-        var myChart = echarts.init(document.getElementById('chartId2'));
-
-        var option = {
-            toolbox: {
-                show: true,
-                x: '90%',
-                feature: {
-                    dataView: {
-                        show: true,
-                        readOnly: true
-                    },
-                    saveAsImage: {
-                        show: true,
-                        name: 'Brinson归因-行业配置等图',
-                        　　　　excludeComponents: ['toolbox'],
-                        　　　　pixelRatio: 2
-                    }
-                }
-            },
-            legend: {
-                data: ['行业配置', '选股+交叉']
-            },
-            itemStyle: {
-                color: '#108ee9',
-            },
-            xAxis: {
-                axisLabel: {
-                    rotate: 45
-                },
-                data: xAxisData
-            },
-            yAxis: {},
-            series: [{
-                name: '行业配置',
-                type: 'bar',
-                itemStyle: {
-                    color: '#108ee9'
-                },
-                data: configData,
-                formatter: function(params) {
-                    for(var i = 0; i < params.length; i++) {
-                        return params[i].name + '</br>' + params[i].seriesName + ':' + (params[i].value * 100).toFixed(2) + '%';
-                    }
-                }
-            }, {
-                name: '选股+交叉',
-                type: 'bar',
-                itemStyle: {
-                    color: '#C0504D'
-                },
-                data: stockcrossData,
-                formatter: function(params) {
-                    for(var i = 0; i < params.length; i++) {
-                        return params[i].name + '</br>' + params[i].seriesName + ':' + (params[i].value * 100).toFixed(2) + '%';
-                    }
-                }
-            }]
-        };
-        myChart.setOption(option);
+    var option = {
+      tooltip: {
+        trigger: 'axis',
+        formatter: function(params) {
+          for (var i = 0; i < params.length; i++) {
+            return (
+              params[i].name +
+              '</br>' +
+              params[i].seriesName +
+              ':' +
+              (params[i].value * 100).toFixed(2) +
+              '%'
+            );
+          }
+        },
+      },
+      toolbox: {
+        show: true,
+        x: '90%',
+        feature: {
+          dataView: {
+            show: true,
+            readOnly: true,
+          },
+          saveAsImage: {
+            show: true,
+            name: 'Barra归因-组合贡献图',
+            excludeComponents: ['toolbox'],
+            pixelRatio: 2,
+          },
+        },
+      },
+      legend: {
+        data: ['组合贡献'],
+      },
+      itemStyle: {
+        color: '#108ee9',
+      },
+      xAxis: {
+        axisLabel: {
+          rotate: 45,
+        },
+        data: xAxisData,
+      },
+      yAxis: {},
+      series: [
+        {
+          name: '组合贡献',
+          type: 'bar',
+          data: yAxisData,
+        },
+      ],
     };
+    myChart.setOption(option);
+  };
 
-
-   //替代锚点的方案
-   //参考：https://blog.csdn.net/mrhaoxiaojun/article/details/79960792
-  scrollToAnchor = (anchorName) => {
+  //替代锚点的方案
+  //参考：https://blog.csdn.net/mrhaoxiaojun/article/details/79960792
+  scrollToAnchor = anchorName => {
     if (anchorName) {
-        // 找到锚点
-        let anchorElement = document.getElementById(anchorName);
-        // 如果对应id的锚点存在，就跳转到锚点
-        if(anchorElement) { anchorElement.scrollIntoView({block: 'start', behavior: 'smooth'}); }
+      // 找到锚点
+      let anchorElement = document.getElementById(anchorName);
+      // 如果对应id的锚点存在，就跳转到锚点
+      if (anchorElement) {
+        anchorElement.scrollIntoView({ block: 'start', behavior: 'smooth' });
+      }
     }
-  }
+  };
 
   //下载
-  downloadExcel = (id,excelName)=>{
-    var tableInnerHtml = $("#"+ id).find("table").html();
-    exportExcel.exprotTableHtmlExcel(tableInnerHtml,excelName);
-  }
+  downloadExcel = (id, excelName) => {
+    var tableInnerHtml = $('#' + id)
+      .find('table')
+      .html();
+    exportExcel.exprotTableHtmlExcel(tableInnerHtml, excelName);
+  };
 
   render() {
-    
-    const { chart, loading } = this.props;
-    const { indexData, exContribution, configData, stockcrossData,strategyInfo } = chart;
-
-    //this.display1(indexData, exContribution);
-
-    const brinsonData = []; //数据 brinson数据
-    for (let i = 0; i < indexData.length; i++) {
-      brinsonData.push({
-        index: i + 1,
-        x: indexData[i],
-        y: exContribution[i],
-      });
-    }
-
-    const columns = [
-      {
-        title: '项目',
-        dataIndex: 'x',
-        key: 'x',
-      },
-      {
-        title: '超额贡献',
-        dataIndex: 'y',
-        key: 'y',
-        //sorter: (a, b) => a.count - b.count,
-        className: styles.alignRight,
-      },
-    ];
-
-
-    const brinsonData2 = []; //行业配置和交叉股
-    for (let i = 0; i < indexData.length; i++) {
-      brinsonData2.push({
-        index: i + 1,
-        x: indexData[i],
-        y: configData[i],
-        z: stockcrossData[i],
-      });
-    }
-    const columns2 = [
-      {
-        title: '项目',
-        dataIndex: 'x',
-        key: 'x',
-      },
-      {
-        title: '行业配置',
-        dataIndex: 'y',
-        key: 'y',
-        //sorter: (a, b) => a.count - b.count,
-        className: styles.alignRight,
-      },
-      {
-        title: '选股+交叉',
-        dataIndex: 'z',
-        key: 'z',
-        //sorter: (a, b) => a.count - b.count,
-        className: styles.alignRight,
-      },
-    ];
+    const { loading } = this.props;
+    const { columns, columns2, tableData, tableData2 } = this.state;
+    const { strategyInfo } = this.props.chart;
 
     return (
       <Fragment>
         <NavigationBar currentKey={this.state.currentTabKey} />
 
         <Card loading={loading} bordered={false} style={{ marginTop: 24 }}>
-          
-            <div className="row bar_title">
-              <div className="col-sm-6">
-                <p>策略：<span>{strategyInfo.strategy_name}</span></p>
-              </div>
-              <div className="col-sm-6">
-                <p>日期：<span>{this.state.begin_date}~{this.state.end_date}</span></p>
-              </div>
+          <div className="row bar_title">
+            <div className="col-sm-6">
+              <p>
+                策略：<span>{strategyInfo.strategy_name}</span>
+              </p>
             </div>
-          
+            <div className="col-sm-6">
+              <p>
+                日期：<span>
+                  {this.state.begin_date}~{this.state.end_date}
+                </span>
+              </p>
+            </div>
+          </div>
+
           <div>
-             <Button type="primary" icon="download" onClick={()=>this.downloadExcel('table1','Brinson归因-超额贡献图')}>导出Excel</Button>
-             <Button type="primary" icon="table" style={{ marginLeft: 24 }} onClick={()=>this.scrollToAnchor('table1')}>详细数据</Button>
+            <Button
+              type="primary"
+              icon="download"
+              onClick={() => this.downloadExcel('table1', 'Barra多因子归因-组合贡献')}
+            >
+              导出Excel
+            </Button>
+            <Button
+              type="primary"
+              icon="table"
+              style={{ marginLeft: 24 }}
+              onClick={() => this.scrollToAnchor('table1')}
+            >
+              详细数据
+            </Button>
           </div>
           <div id="chartId1" style={{ width: '95%', height: 500 }} />
         </Card>
         <Card loading={loading} bordered={false} style={{ marginTop: 24 }}>
           <div>
-             <Button type="primary" icon="download" onClick={()=>this.downloadExcel('table2','Brinson归因-行业配置等图')}>导出Excel</Button>
-             <Button type="primary" icon="table" style={{ marginLeft: 24 }} onClick={()=>this.scrollToAnchor('table2')}>详细数据</Button>
+            <Button
+              type="primary"
+              icon="download"
+              onClick={() => this.downloadExcel('table2', 'Barra多因子归因-超额贡献')}
+            >
+              导出Excel
+            </Button>
+            <Button
+              type="primary"
+              icon="table"
+              style={{ marginLeft: 24 }}
+              onClick={() => this.scrollToAnchor('table2')}
+            >
+              详细数据
+            </Button>
           </div>
           <div id="chartId2" style={{ width: '95%', height: 500 }} />
         </Card>
@@ -291,12 +349,11 @@ displayChart2 = (xAxisData, configData, stockcrossData) => {
             rowKey={record => record.index}
             size="small"
             columns={columns}
-            dataSource={brinsonData}
+            dataSource={tableData}
             pagination={{
               style: { marginBottom: 0 },
               pageSize: 100,
             }}
-
             id="table1"
           />
         </Card>
@@ -306,12 +363,11 @@ displayChart2 = (xAxisData, configData, stockcrossData) => {
             rowKey={record => record.index}
             size="small"
             columns={columns2}
-            dataSource={brinsonData2}
+            dataSource={tableData2}
             pagination={{
               style: { marginBottom: 0 },
               pageSize: 100,
             }}
-
             id="table2"
           />
         </Card>

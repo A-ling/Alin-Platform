@@ -3,8 +3,7 @@ import { isUrl } from '../utils/utils';
 const menuData = [
   {
     name: '策略回测绩效归因',
-    //  icon: 'appstore',
-    icon: 'mail',
+    icon: 'dashboard',
     path: 'brinson',
     children: [
       {
@@ -26,21 +25,6 @@ const menuData = [
       {
         name: 'Barra风险分析',
         path: 'barra_analysis',
-      },
-    ],
-  },
-  {
-    name: '单因子管理',
-    icon: 'appstore',
-    path: 'factor',
-    children: [
-      {
-        name: '单因子信息管理',
-        path: 'message',
-      },
-      {
-        name: '单因子检验',
-        path: 'check',
       },
     ],
   },

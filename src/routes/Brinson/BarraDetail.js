@@ -22,7 +22,7 @@ var common = require('../../utils/common');
   chart,
   loading: loading.effects['chart/fetch'],
 }))
-export default class BrinsonList extends Component {
+export default class BarraDetail extends Component {
   state = {
     currentTabKey: '4',
     //display1:display1,
@@ -32,22 +32,62 @@ export default class BrinsonList extends Component {
   componentDidMount() {
     this.props.dispatch({
       type: 'chart/fetch', //获取模拟的data数据
-    }).then(()=>{
-        
+    }).then(() => {
+
+      const { barraData } = this.props.chart;
+      if (!barraData) {
+        return;
+      }
+      var indexData = barraData.index;
+      var columnsData = barraData.columns; //行数据
+      var dataData = barraData.data;
+
+      //表头
+      const columns = [
+        {
+          title: '行业/项目',
+          dataIndex: 'col0',
+          key: 'col0',
+        },
+      ];
+      for (let i = 0; i < columnsData.length; i++) {
+        columns.push({
+          title: columnsData[i],
+          dataIndex: 'col' + (i + 1),
+          key: 'col' + (i + 1),
+          className: styles.alignRight,
+        });
+      }
+
+      //行数据
+      const tableData = [];
+      for (let i = 0; i < indexData.length; i++) {
+        var item = {};
+        item["index"] = i;
+        item["col0"] = indexData[i]
+        for (let j = 0; j < columnsData.length; j++) {
+          item["col" + (j + 1)] = dataData[i][j];
+        }
+        tableData.push(item);
+      }
+      this.setState({
+        columns: columns,
+        tableData: tableData,
+      });
     });
 
     this.props.dispatch({
       type: 'chart/getStrategyInfo', //获取策略详情：根据策略ID获取策略详情，传入id待解决
-    }).then(()=>{
-        console.log(this.props.chart.strategyInfo);
+    }).then(() => {
+      console.log(this.props.chart.strategyInfo);
     })
 
     //获取链接中的参数值
     this.setState({
-      strategy_id: common.getParamFromURLOrCookie('strategy_id',true),
-      index_code : common.getParamFromURLOrCookie('index_code',true),
-      begin_date : common.getParamFromURLOrCookie('begin_date',true),
-      end_date : common.getParamFromURLOrCookie('end_date',true),
+      strategy_id: common.getParamFromURLOrCookie('strategy_id', true),
+      index_code: common.getParamFromURLOrCookie('index_code', true),
+      begin_date: common.getParamFromURLOrCookie('begin_date', true),
+      end_date: common.getParamFromURLOrCookie('end_date', true),
     });
 
   }
@@ -66,58 +106,29 @@ export default class BrinsonList extends Component {
   // }
 
   render() {
-    
+
     const { chart, loading } = this.props;
-    const { indexData,columnsData, exContribution, configData, stockcrossData, dataData, strategyInfo } = chart;
-
-
-    //表头
-    const columns = [
-      {
-        title: '行业/项目',
-        dataIndex: 'col0',
-        key: 'col0',
-      },
-    ];
-    for (let i = 0; i < columnsData.length; i++){
-      columns.push({
-        title: columnsData[i],
-        dataIndex: 'col'+(i+1),
-        key: 'col'+(i+1),
-        className: styles.alignRight,
-      });
-    }
-
-    //行数据
-    const brinsonData = [];
-    for (let i = 0; i < indexData.length; i++) {
-        var item = {};
-        item["index"] = i;
-        item["col0"] = indexData[i]
-        for (let j = 0; j < columnsData.length; j++){
-          item["col"+(j+1)] = dataData[i][j];
-        }
-        brinsonData.push(item);
-    }
+    const { strategyInfo } = chart;
+    const { columns, tableData } = this.state;
 
     return (
       <Fragment>
         <NavigationBar currentKey={this.state.currentTabKey} />
 
         <Card loading={loading} bordered={false} style={{ marginTop: 24 }}>
-            <div className="row bar_title">
-                <div className="col-sm-6">
-                  <p>策略：<span>{strategyInfo.strategy_name}</span></p>
-                </div>
-                <div className="col-sm-6">
-                  <p>日期：<span>{this.state.begin_date}~{this.state.end_date}</span></p>
-                </div>
-              </div>
+          <div className="row bar_title">
+            <div className="col-sm-6">
+              <p>策略：<span>{strategyInfo.strategy_name}</span></p>
+            </div>
+            <div className="col-sm-6">
+              <p>日期：<span>{this.state.begin_date}~{this.state.end_date}</span></p>
+            </div>
+          </div>
           <Table
             rowKey={record => record.index}
             size="small"
             columns={columns}
-            dataSource={brinsonData}
+            dataSource={tableData}
             pagination={{
               style: { marginBottom: 0 },
               pageSize: 100,

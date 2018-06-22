@@ -15,13 +15,15 @@ export default {
     salesTypeDataOffline: [],
     radarData: [],
     loading: false,
-    indexData:[],
-    columnsData:[],
-    exContribution:[],
-    configData:[],
-    stockcrossData:[],
-    dataData:[],
-    strategyInfo:{},
+    indexData: [],
+    columnsData: [],
+    exContribution: [],
+    configData: [],
+    stockcrossData: [],
+    dataData: [],
+    strategyInfo: {},
+    barraData: {},
+    barraAnalysisData: {},
   },
 
   effects: {
@@ -37,22 +39,22 @@ export default {
       yield put({
         type: 'save',
         payload: {
-          salesData: response.salesData
+          salesData: response.salesData,
         },
       });
     },
     //获取策略
-    *getStrategyInfo(_,{call,put}){
+    *getStrategyInfo(_, { call, put }) {
       yield put({
-        type:'save',
-        payload:{
-          strategyInfo:{
-            "strategy_id": "S0000000000000000000000000000382",
-            "strategy_code": "S0000162",
-            "strategy_name": "PE选股策略",
-            "strategy_version": "1.1.1"
-          }
-        }
+        type: 'save',
+        payload: {
+          strategyInfo: {
+            strategy_id: 'S0000000000000000000000000000382',
+            strategy_code: 'S0000162',
+            strategy_name: 'PE选股策略',
+            strategy_version: '1.1.1',
+          },
+        },
       });
     },
   },
@@ -77,13 +79,15 @@ export default {
         salesTypeDataOffline: [],
         radarData: [],
         loading: false,
-        indexData:[],
-        columnsData:[],
-        exContribution:[],
-        configData:[],
-        stockcrossData:[],
-        dataData:[],
-        strategyInfo:{},
+        indexData: [],
+        columnsData: [],
+        exContribution: [],
+        configData: [],
+        stockcrossData: [],
+        dataData: [],
+        strategyInfo: {},
+        barraData: {},
+        barraAnalysisData: {},
       };
     },
   },

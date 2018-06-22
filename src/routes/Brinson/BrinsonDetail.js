@@ -22,13 +22,12 @@ var common = require('../../utils/common');
   chart,
   loading: loading.effects['chart/fetch'],
 }))
-export default class BrinsonList extends Component {
+export default class BrinsonDetail extends Component {
   state = {
     currentTabKey: '2',
     //display1:display1,
   };
-
-
+  
   componentDidMount() {
     this.props.dispatch({
       type: 'chart/fetch', //获取模拟的data数据
