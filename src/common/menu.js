@@ -1,9 +1,24 @@
 import { isUrl } from '../utils/utils';
 
 const menuData = [
+	{
+    name: '单因子管理',
+    icon: 'appstore',
+    path: 'factor',
+    children: [
+      {
+        name: '单因子信息管理',
+        path: 'message',
+      },
+      {
+        name: '单因子检验',
+        path: 'check',
+      },
+    ],
+  },
   {
-    name: '策略回测绩效归因',
-    icon: 'dashboard',
+    name: '策略业绩分析',
+    icon: 'mail',
     path: 'brinson',
     children: [
       {
